@@ -18,7 +18,7 @@ spec:
       default: rhoai-model-registries
     - name: git-url
       type: string
-      default: https://github.com/sukantadash/ai-model-security-pipeline.git
+      default: https://github.com/asheet/ai-model-security-pipeline.git
       description: Git repo that holds serving YAML (LLMInferenceService templates)
     - name: model-sandbox-path
       type: string
