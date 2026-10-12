@@ -103,6 +103,7 @@ oc get runtimeclass kata
 # Phase 4: MinIO + eval workspace PVC + zone secrets
 # Overlay: 05-storage
 # =============================================================================
+## Create minio secret !!!
 # Edit instances/minio/secret.yaml (root password), then:
 oc apply -k ./overlays/05-storage/
 # MinIO reads minio-root only at pod start — restart after any password change.
@@ -140,14 +141,14 @@ done
 # oc create secret generic git-auth -n "${NS_MODEL_EVAL}" --from-literal=token=<github-pat>
 # cp quay-secret.yaml.template quay-secret.yaml             # edit credentials first
 oc apply -f quay-secret.yaml -n "${NS_BUILD_IMAGE}"
-oc secrets link builder sudash-modelpipeline-pull-secret -n "${NS_BUILD_IMAGE}"
+oc secrets link builder asheet-modelpipeline-pull-secret -n "${NS_BUILD_IMAGE}"
 oc apply -f quay-secret.yaml -n "${NS_MODEL_INGRESS}"
 oc apply -f quay-secret.yaml -n "${NS_MODEL_EVAL}"
 oc apply -f quay-secret.yaml -n "${NS_MODEL_TEST}"
 #
 # Hugging Face token (ingress only, gated models) — replace <your-token>:
 oc create secret generic hf-token -n "${NS_MODEL_INGRESS}" \
-  --from-literal=HF_TOKEN=<your-token>
+  --from-literal=HF_TOKEN=hf_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 # =============================================================================
 # Phase 5: Build custom scanner images
@@ -218,6 +219,14 @@ oc apply -k ./overlays/12-rhoai-dashboard/
 oc wait --for=condition=Available deployment/model-registry-db -n rhoai-model-registries --timeout=300s
 oc wait --for=condition=Available mr/model-registry -n rhoai-model-registries --timeout=600s
 oc get mr -n rhoai-model-registries
+
+# =============================================================================
+# Phase 11.1: Deploy EvalHub
+# Overlay: 18-lmeval
+# Required for using evalhub evaluations against the model
+# Make sure datasciencecluster - mlflowoperator is managed
+# =============================================================================
+oc apply -k ./overlays/18-lmeval/
 
 # Live pipeline (docs/pipeline.md DAG). Edit git-url in pipelinerun-example.yaml
 # to a reachable HTTPS repo; push instances/model-sandbox/LLMInferenceService.yaml.
